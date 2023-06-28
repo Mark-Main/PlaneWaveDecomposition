@@ -42,7 +42,8 @@ z = 100  # Propagation distance
 k = 2 * np.pi / 0.5  # Wave number
 
 # Create subplot
-fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
 # Generate initial LG wave
 lg_wave = laguerre_gaussian(X, Y, p, l, w0, z, k)
@@ -57,10 +58,11 @@ ax_l = plt.axes([0.25, 0.1, 0.65, 0.03])
 
 # Create p and l sliders with initial values
 slider_p = Slider(ax_p, 'p', 0, 5, valinit=p, valstep=1)
-slider_l = Slider(ax_l, 'l', -5, 5, valinit=l, valstep=1)
+slider_l = Slider(ax_l, 'l', 0, 5, valinit=l, valstep=1)
 
 # Function to update the plot when the sliders' values change
 def update_plot(val):
+    global surf  # Declare surf as global
     p_val = int(slider_p.val)
     l_val = int(slider_l.val)
 
@@ -69,7 +71,20 @@ def update_plot(val):
 
     # Update the intensity profile
     intensity = np.abs(lg_wave)**2
-    surf.set_array(intensity.ravel())
+
+    # Remove the previous plot
+    ax.collections.remove(surf)
+
+    # Plot the new intensity profile in 3D
+    surf = ax.plot_surface(X, Y, intensity, cmap='hot')
+
+    # Adjust the plot labels
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Intensity')
+    ax.set_title(f'Laguerre-Gaussian (p={p_val}, l={l_val}) at z={z}')
+
+    # Update the plot
     fig.canvas.draw_idle()
 
 # Link the sliders to the update_plot function
@@ -78,4 +93,3 @@ slider_l.on_changed(update_plot)
 
 # Display the sliders and initial plot
 plt.show()
-
