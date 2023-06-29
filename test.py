@@ -18,49 +18,55 @@ def laguerre_gaussian(x, y, p, l, w0, z, k):
     Returns:
         ndarray: Complex field amplitude.
     """
-    rho = np.sqrt(x**2 + y**2)
-    phi = np.arctan2(y, x)
+    r = np.sqrt(x**2 + y**2)
+    theta = np.arctan2(y, x)
 
-    radial = np.sqrt(2 * np.math.factorial(p) / (np.pi * np.math.factorial(p + np.abs(l))))
-    laguerre = np.polynomial.Legendre.basis(l)(2 * rho**2 / w0**2)
-    gauss = np.exp(-rho**2 / w0**2)
+    # Calculate the radial and azimuthal parts
+    radial_part = np.sqrt(2 / (np.pi * w0**2)) * (np.sqrt(2) * r / w0)**l * np.exp(-r**2 / w0**2)
+    azimuthal_part = np.exp(1j * l * theta)
 
-    phase = np.exp(1j * (l * phi + k * rho**2 / (2 * z)))
+    # Calculate the Gaussian factor
+    gaussian_factor = np.exp(-1j * k * r**2 / (2 * (z + 1j * k * w0**2)))
 
-    lg_beam = np.sqrt(2 / np.pi) * radial * laguerre * gauss * phase
+    # Calculate the Laguerre polynomial
+    laguerre_poly = np.polyval(np.poly1d([np.math.factorial(p + l) / (np.math.factorial(p) * np.math.factorial(l)), -1])**p, (2 * r**2) / w0**2)
 
-    return lg_beam
+    # Calculate the Laguerre-Gaussian beam
+    laguerre_gaussian_beam = radial_part * azimuthal_part * gaussian_factor * laguerre_poly
+
+    return laguerre_gaussian_beam
 
 # Parameters
-x = np.linspace(-10, 10, 200)
-y = np.linspace(-10, 10, 200)
+x = np.linspace(-10, 10, 500)
+y = np.linspace(-10, 10, 500)
 X, Y = np.meshgrid(x, y)
-p = 1  # Radial mode
-l = 2  # Azimuthal mode
+p = 2  # Radial mode
+l = 3  # Azimuthal mode
 w0 = 2  # Waist parameter
-z = 100  # Propagation distance
+z = 1  # Propagation distance
 k = 2 * np.pi / 0.5  # Wave number
 
-# Create subplot
+# Create subplot for the 3D plot
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+ax_3d = fig.add_subplot(121, projection='3d')
 
 # Generate initial LG wave
 lg_wave = laguerre_gaussian(X, Y, p, l, w0, z, k)
 
 # Plot the intensity profile in 3D
 intensity = np.abs(lg_wave)**2
-surf = ax.plot_surface(X, Y, intensity, cmap='hot')
+
+surf = ax_3d.plot_surface(X, Y, intensity, cmap='jet')
 
 # Create axes for p and l sliders
-ax_p = plt.axes([0.25, 0.15, 0.65, 0.03])
-ax_l = plt.axes([0.25, 0.1, 0.65, 0.03])
+ax_p = plt.axes([0.25, 0.05, 0.65, 0.03])
+ax_l = plt.axes([0.25, 0.01, 0.65, 0.03])
 
 # Create p and l sliders with initial values
 slider_p = Slider(ax_p, 'p', 0, 5, valinit=p, valstep=1)
 slider_l = Slider(ax_l, 'l', 0, 5, valinit=l, valstep=1)
 
-# Function to update the plot when the sliders' values change
+# Function to update the plots when the sliders' values change
 def update_plot(val):
     global surf  # Declare surf as global
     p_val = int(slider_p.val)
@@ -72,24 +78,44 @@ def update_plot(val):
     # Update the intensity profile
     intensity = np.abs(lg_wave)**2
 
-    # Remove the previous plot
-    ax.collections.remove(surf)
+    # Remove the previous plot in the 3D subplot
+    ax_3d.collections.remove(surf)
 
-    # Plot the new intensity profile in 3D
-    surf = ax.plot_surface(X, Y, intensity, cmap='hot')
+    # Plot the new intensity profile in the 3D subplot
+    surf = ax_3d.plot_surface(X, Y, intensity, cmap='jet')
 
-    # Adjust the plot labels
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Intensity')
-    ax.set_title(f'Laguerre-Gaussian (p={p_val}, l={l_val}) at z={z}')
+    # Adjust the plot labels in the 3D subplot
+    ax_3d.set_xlabel('X')
+    ax_3d.set_ylabel('Y')
+    ax_3d.set_zlabel('Intensity')
+    ax_3d.set_title(f'Laguerre-Gaussian (p={p_val}, l={l_val}) at z={z}')
 
-    # Update the plot
+    # Update the 2D subplot
+    ax_2d.imshow(intensity.reshape(X.shape), cmap='jet', origin='lower')
+    ax_2d.set_xlabel('X')
+    ax_2d.set_ylabel('Y')
+    ax_2d.set_title(f'Laguerre-Gaussian (p={p_val}, l={l_val}) at z={z}')
+
+    # Update the plots
     fig.canvas.draw_idle()
+
 
 # Link the sliders to the update_plot function
 slider_p.on_changed(update_plot)
 slider_l.on_changed(update_plot)
 
-# Display the sliders and initial plot
+# Create subplot for the 2D plot
+ax_2d = fig.add_subplot(122)
+
+# Generate initial LG wave for the 2D plot
+lg_wave_2d = laguerre_gaussian(X, Y, p, l, w0, z, k)
+
+# Plot the intensity profile in 2D
+intensity_2d = np.abs(lg_wave_2d)**2
+ax_2d.imshow(intensity_2d.reshape(X.shape), cmap='jet', origin='lower')
+ax_2d.set_xlabel('X')
+ax_2d.set_ylabel('Y')
+ax_2d.set_title(f'Laguerre-Gaussian (p={p}, l={l}) at z={z}')
+
+# Display the sliders and initial plots
 plt.show()
