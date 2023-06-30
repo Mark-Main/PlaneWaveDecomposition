@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+from scipy.special import genlaguerre
 
 def laguerre_gaussian(x, y, p, l, w0, z, k):
     """
@@ -29,7 +30,7 @@ def laguerre_gaussian(x, y, p, l, w0, z, k):
     gaussian_factor = np.exp(-1j * k * r**2 / (2 * (z + 1j * k * w0**2)))
 
     # Calculate the Laguerre polynomial
-    laguerre_poly = np.polyval(np.poly1d([np.math.factorial(p + l) / (np.math.factorial(p) * np.math.factorial(l)), -1])**p, (2 * r**2) / w0**2)
+    laguerre_poly = genlaguerre(p, l)(2 * r**2 / w0**2)
 
     # Calculate the Laguerre-Gaussian beam
     laguerre_gaussian_beam = radial_part * azimuthal_part * gaussian_factor * laguerre_poly
@@ -58,7 +59,7 @@ intensity = np.abs(Z)**2
 intensity /= np.max(intensity)
 
 # Plot the initial Laguerre-Gaussian beam
-cax = ax.imshow(intensity, extent=[x[0], x[-1], y[0], y[-1]], cmap='hot', origin='lower')
+cax = ax.imshow(intensity, extent=[x[0], x[-1], y[0], y[-1]], cmap='inferno', origin='lower')
 plt.colorbar(cax)
 
 # Create the slider axes
