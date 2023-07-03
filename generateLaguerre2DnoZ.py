@@ -33,5 +33,7 @@ def laguerre_gaussian(x, y, p, l, w0, k):
 
     # Calculate the Laguerre-Gaussian beam
     laguerre_gaussian_beam = radial_part * azimuthal_part  * laguerre_poly
+    #print(laguerre_gaussian_beam)
 
     return laguerre_gaussian_beam
+
