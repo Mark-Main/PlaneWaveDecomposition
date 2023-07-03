@@ -26,12 +26,12 @@ def laguerre_gaussian(x, y, p, l, w0, k):
     azimuthal_part = np.exp(1j * l * theta)
 
     # Calculate the Gaussian factor
-    gaussian_factor = np.exp(-1j * k * r**2 / (2 * (1j * k * w0**2)))
+#
 
     # Calculate the Laguerre polynomial
     laguerre_poly = genlaguerre(p, l)(2 * r**2 / w0**2)
 
     # Calculate the Laguerre-Gaussian beam
-    laguerre_gaussian_beam = radial_part * azimuthal_part * gaussian_factor * laguerre_poly
+    laguerre_gaussian_beam = radial_part * azimuthal_part  * laguerre_poly
 
     return laguerre_gaussian_beam

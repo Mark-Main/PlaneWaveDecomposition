@@ -25,10 +25,10 @@ def disStep(d, res, s, λ):
             term3 = (2 * np.pi * ((y + res / 2) % res - res / 2) / s) ** 2
             #print(term3)
             # Calculate the distance factor by subtracting term2 and term3 from term1 and taking the square root
-            distance_factor = np.sqrt(term1 - term2 - term3)
+            distance_factor = np.sqrt(term1 - (term2 + term3))
             #print(distance_factor)
 
             # Compute the complex value by multiplying with d and exponentiating with (0 + 1j)
-            result[x, y] = d * np.exp(distance_factor * (0 + 1j))
+            result[x, y] = np.exp(d* distance_factor * (0 + 1j))
 
     return result

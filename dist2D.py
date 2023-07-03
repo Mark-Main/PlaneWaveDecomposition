@@ -6,20 +6,20 @@ import generateLaguerre2DnoZ
 import distanceTerm
 
 # Parameters
-x = np.linspace(-10, 10, 512)
-y = np.linspace(-10, 10, 512)
+x = np.linspace(-0.025, 0.025, 512)
+y = np.linspace(-0.025, 0.025, 512)
 X, Y = np.meshgrid(x, y)
-p_init = 0  # Initial radial mode
-l_init = 0  # Initial azimuthal mode
-w0 = 2  # Waist parameter
+p_init = 2  # Initial radial mode
+l_init = 3  # Initial azimuthal mode
+w0 = 0.002  # Waist parameter
 z_init = 1  # Propagation distance
 k = 2 * np.pi / 0.5  # Wave number
 
 res = 512
 s = 1
-λ = 400 / 1000000000
+λ = 600 / 1000000000
 
-plt.close('all')
+
 
 # Create the figure and axis for intensity
 fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(20, 20))
@@ -49,13 +49,13 @@ fft_result = np.fft.fft2(product)
 ifft_result = np.fft.ifft2(fft_result)
 
 # Normalize the intensity
-intensity = np.abs(ifft_result) ** 2
+intensity = np.abs(product) ** 2
 
 # Identify the phase
-phase = np.angle(ifft_result)
+phase = np.angle(product)
 
 # Plot the initial Laguerre-Gaussian beam
-cax = ax[0].imshow(intensity, extent=[x[0], x[-1], y[0], y[-1]], cmap='inferno', origin='lower')
+cax = ax[0].imshow(intensity, extent=[x[10], x[-10], y[1], y[-1]], cmap='inferno', origin='lower')
 cax2 = ax[1].imshow(phase, extent=[x[0], x[-1], y[0], y[-1]], cmap='inferno', origin='lower')
 
 # Create the colorbars
@@ -63,8 +63,8 @@ colorbar1 = plt.colorbar(cax, ax=ax[0])
 colorbar2 = plt.colorbar(cax2, ax=ax[1])
 
 # Set the minimum value to 0 for both colorbars
-colorbar1.mappable.set_clim(vmin=0)
-colorbar2.mappable.set_clim(vmin=0)
+colorbar1.mappable.set_clim(vmin=0, vmax=1)
+colorbar2.mappable.set_clim(vmin=-3)
 
 
 # Create the slider axes
@@ -99,10 +99,10 @@ def update(val):
     ifft_result = np.fft.ifft2(fft_result)
 
     # Normalize the intensity
-    intensity = np.abs(ifft_result) ** 2
+    intensity = np.abs(product) ** 2
 
     # Identify the phase
-    phase = np.angle(ifft_result)
+    phase = np.angle(product)
 
     # Update the plot
     cax.set_data(intensity)
