@@ -140,8 +140,8 @@ ax_tilt = plt.axes([0.0, 0.3, 0.05, 0.6])
 slider_l = Slider(ax=ax_l, label='l', valmin=0, valmax=10, valstep=1, valinit=l_init, orientation='vertical')
 slider_p = Slider(ax=ax_p, label='p', valmin=0, valmax=10, valstep=1, valinit=p_init, orientation='vertical')
 slider_z = Slider(ax=ax_z, label='z', valmin=0, valmax=10, valstep=1, valinit=z_init, orientation='vertical')
-phaseshifttip_slider = Slider(ax_tip, 'Phase Shift Tip', -10, 10.0, valinit=phaseshifttip_init, valstep=0.1, orientation='vertical')
-phaseshifttilt_slider = Slider(ax_tilt, 'Phase Shift Tilt', -10, 10.0, valinit=phaseshifttilt_init, valstep=0.1, orientation='vertical')
+phaseshifttip_slider = Slider(ax_tip, 'Phase Shift Tip', -30*np.pi, 30*np.pi, valinit=phaseshifttip_init, valstep=0.1*np.pi, orientation='vertical')
+phaseshifttilt_slider = Slider(ax_tilt, 'Phase Shift Tilt', -30*np.pi, 30*np.pi, valinit=phaseshifttilt_init, valstep=0.1*np.pi, orientation='vertical')
 
 # Register the update function with the sliders
 slider_l.on_changed(update)
