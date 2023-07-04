@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 from scipy.special import genlaguerre
 
-def laguerre_gaussian(x, y, p, l, w0, k):
+def laguerre_gaussian(x, y, p, l, w0):
     """
     Generate a Laguerre-Gaussian (LG) beam.
 
@@ -13,6 +13,7 @@ def laguerre_gaussian(x, y, p, l, w0, k):
         p (int): Radial mode.
         l (int): Azimuthal mode.
         w0 (float): Waist parameter.
+        z (float): Propagation distance.
         k (float): Wave number.
 
     Returns:
@@ -26,14 +27,12 @@ def laguerre_gaussian(x, y, p, l, w0, k):
     azimuthal_part = np.exp(1j * l * theta)
 
     # Calculate the Gaussian factor
-#
+   # gaussian_factor = np.exp(-1j * k * r**2 / (2 * (z + 1j * k * w0**2)))
 
     # Calculate the Laguerre polynomial
     laguerre_poly = genlaguerre(p, l)(2 * r**2 / w0**2)
 
     # Calculate the Laguerre-Gaussian beam
-    laguerre_gaussian_beam = radial_part * azimuthal_part  * laguerre_poly
-    #print(laguerre_gaussian_beam)
+    laguerre_gaussian_beam = radial_part * azimuthal_part * laguerre_poly
 
     return laguerre_gaussian_beam
-
