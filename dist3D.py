@@ -15,8 +15,7 @@ X, Y = np.meshgrid(x, y)
 p_init = 2  # Initial radial mode
 l_init = 3  # Initial azimuthal mode
 w0 = 0.002  # Waist parameter
-z_init = [ 20]  # Propagation distances for slices
-
+z_init = [20]  # Propagation distances for slices
 
 s = 0.25
 λ = 600 / 1000000000
@@ -24,9 +23,10 @@ s = 0.25
 phaseshifttip_init = 0
 phaseshifttilt_init = 0
 
-# Create the figure and axis for the 3D plot
+# Create the figure and axes for the 3D plots
 fig = plt.figure(figsize=(20, 25))
-ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(121, projection='3d')  # Left subplot
+ax2 = fig.add_subplot(122, projection='3d')  # Right subplot
 
 # Create text boxes for phase shift values
 tip_text_box = TextBox(plt.axes([0.85, 0.9, 0.1, 0.05]), 'Phase Shift Tip', initial=str(phaseshifttip_init))
@@ -50,6 +50,7 @@ def update(val):
 
     # Clear the current plot
     ax.cla()
+    ax2.cla()
 
     # Iterate over the slices
     for i in range(len(z_init)):
@@ -71,11 +72,16 @@ def update(val):
         intensity = np.abs(ifft_result) ** 2
         intensity /= np.max(intensity)
 
+        phase = np.angle(ifft_result)
+
         # Plot the 2D slice in the 3D plot
         ax.plot_surface(X, Y, z_init[i] * np.ones_like(X), facecolors=plt.cm.viridis(intensity),
                         rstride=1, cstride=1, shade=False)
 
-    # Set limits and labels for the 3D plot
+        ax2.plot_surface(X, Y, z_init[i] * np.ones_like(X), facecolors=plt.cm.viridis(phase),
+                         rstride=1, cstride=1, shade=False)
+
+    # Set limits and labels for the 3D plots
     ax.set_xlim(-0.25, 0.25)
     ax.set_ylim(-0.25, 0.25)
     ax.set_zlim(0, max(z_init))
@@ -84,16 +90,25 @@ def update(val):
     ax.set_zlabel('Distance')
     ax.set_title('2D Intensity Plots in 3D')
 
-
+    ax2.set_xlim(-0.25, 0.25)
+    ax2.set_ylim(-0.25, 0.25)
+    ax2.set_zlim(0, max(z_init))
+    ax2.set_xlabel('X')
+    ax2.set_ylabel('Y')
+    ax2.set_zlabel('Distance')
+    ax2.set_title('2D Phase Plots in 3D')
 
     # Set the rotation angles
     ax.view_init(elev=-20, azim=0, roll=270)
+    ax2.view_init(elev=-20, azim=0, roll=270)
 
     # Set the aspect ratio to make it a cuboid
     ax.set_box_aspect([15, 15, 50])
+    ax2.set_box_aspect([15, 15, 50])
 
-    # Show the plot
-    plt.draw()
+    # Show the plots
+    fig.canvas.draw_idle()
+
 
 # Connect the update function to the text box events
 tip_text_box.on_submit(update)
@@ -102,5 +117,5 @@ tilt_text_box.on_submit(update)
 # Call the update function to plot with initial tip and tilt values
 update(None)
 
-# Show the plot
+# Show the plots
 plt.show()
