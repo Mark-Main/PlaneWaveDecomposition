@@ -2,22 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import TextBox
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.special import genlaguerre, eval_hermite
+from scipy.special import genlaguerre
 import generateLaguerre2DnoZ
 import distanceTerm
 import tilt_func
 import csv
 
 # Parameters
-res = 128
+res =128
 x = np.linspace(-0.25, 0.25, res)
 y = np.linspace(-0.25, 0.25, res)
 X, Y = np.meshgrid(x, y)
 
+
 p_init = 1  # Initial radial mode
 l_init = 0  # Initial azimuthal mode
 w0 = 0.02  # Waist parameter
-z_init = [0, 3, 10, 50]  # Propagation distances for slices
+z_init = [0,3,10,50]  # Propagation distances for slices
 
 s = 0.025
 λ = 600 / 1000000000
@@ -30,7 +31,7 @@ fig = plt.figure(figsize=(20, 25))
 ax = fig.add_subplot(121, projection='3d')  # Left subplot
 ax2 = fig.add_subplot(122, projection='3d')  # Right subplot
 
-# Create text boxes for phase shift
+# Create text boxes for phase shift 
 tip_text_box = TextBox(plt.axes([0.85, 0.9, 0.1, 0.05]), 'Phase Shift Tip', initial=str(phaseshifttip_init))
 tilt_text_box = TextBox(plt.axes([0.85, 0.85, 0.1, 0.05]), 'Phase Shift Tilt', initial=str(phaseshifttilt_init))
 
@@ -60,29 +61,24 @@ def update(val):
         wave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p_init, l_init, w0)
         distance = distanceTerm.disStep(z_init[i], res, s, λ)
         L, M, N = tilt_func.tilttip(res, phaseshifttip, phaseshifttilt)
-
-        # Create a supergaussian meshgrid
-        xx = np.linspace(-1, 1, res * 10)
-        yy = np.linspace(-1, 1, res * 10)
-        XX, YY = np.meshgrid(xx, yy)
-
-        # Create the supergaussian function
-        sigma = 0.1
-        exponent = -((XX / sigma) ** 4 + (YY / sigma) ** 4)
-        supergaussian = np.exp(exponent)
+        bigplot = np.zeros((res*10, res*10), dtype=complex)
+        print(bigplot.shape)
 
         # Calculate the dimensions of the wave array
         wave_size = wave.shape[0]
+        print(wave_size)
 
         # Calculate the center position for adding wave to bigplot
-        center_x = supergaussian.shape[0] // 2
-        center_y = supergaussian.shape[1] // 2
+        center_x = bigplot.shape[0] // 2
+        center_y = bigplot.shape[1] // 2
 
         # Calculate the indices for adding the wave to the center of bigplot
         x_start = center_x - wave_size // 2
         x_end = x_start + wave_size
         y_start = center_y - wave_size // 2
         y_end = y_start + wave_size
+
+        # Add the wave to the center of the bigplot array
 
         # Multiply wave and distance arrays
         product = np.multiply(wave, np.exp(1j * N))
@@ -92,13 +88,14 @@ def update(val):
 
         # Perform inverse Fourier transform
         ifft_result = np.fft.ifft2(fft_result * distance)
-
-        # Add the wave to the center of the supergaussian
-        supergaussian[x_start:x_end, y_start:y_end] += ifft_result
+        bigplot[x_start:x_end, y_start:y_end] += ifft_result
+        print(x_start, x_end, y_start, y_end)
+        print(bigplot[640,640])
 
         # Normalize the intensity
         intensity = np.abs(ifft_result) ** 2
         intensity /= np.max(intensity)
+
 
         filename = 'array_data.csv'
         with open(filename, 'w', newline='') as csvfile:
@@ -106,6 +103,7 @@ def update(val):
             writer.writerows(intensity)
 
         print(f"Array data saved as {filename}")
+
 
         phase = np.angle(ifft_result)
 
@@ -120,11 +118,13 @@ def update(val):
                          rstride=1, cstride=1, shade=False)
 
     # Set limits and labels for the 3D plots
+
     ax.set_zlim(0, max(z_init))
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Distance')
     ax.set_title('2D Intensity Plots in 3D')
+
 
     ax2.set_zlim(0, max(z_init))
     ax2.set_xlabel('X')
