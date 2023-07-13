@@ -9,8 +9,8 @@ import tilt_func
 import csv
 
 # Parameters
-res = 32
-res2 = 256
+res = 8
+res2 = 64
 x = np.linspace(-0.25, 0.25, res)
 y = np.linspace(-0.25, 0.25, res)
 X, Y = np.meshgrid(x, y)
