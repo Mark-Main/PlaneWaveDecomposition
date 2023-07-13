@@ -14,6 +14,11 @@ x = np.linspace(-0.25, 0.25, res)
 y = np.linspace(-0.25, 0.25, res)
 X, Y = np.meshgrid(x, y)
 
+x2 = np.linspace(-0.5, 0.5, res*2)
+y2 = np.linspace(-0.5, 0.5, res*2)
+X2, Y2 = np.meshgrid(x2, y2)
+
+
 
 p_init = 1  # Initial radial mode
 l_init = 0  # Initial azimuthal mode
@@ -22,6 +27,9 @@ z_init = [0,3,10,50]  # Propagation distances for slices
 
 s = 0.025
 λ = 600 / 1000000000
+
+sigma = 1.0  # Standard deviation of the super Gaussian
+exponent = 4  # Exponent controlling the shape of the super Gaussian
 
 phaseshifttip_init = 0
 phaseshifttilt_init = 0
@@ -61,22 +69,26 @@ def update(val):
         wave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p_init, l_init, w0)
         distance = distanceTerm.disStep(z_init[i], res, s, λ)
         L, M, N = tilt_func.tilttip(res, phaseshifttip, phaseshifttilt)
-        bigplot = np.zeros((res*10, res*10), dtype=complex)
-        print(bigplot.shape)
+       # R = np.sqrt((X2)**2 + (Y2)**2)
+        #super_gaussian = np.exp(-(R/sigma)**exponent)
+
+        #empty = np.zeros((X2, Y2), dtype=complex)
+        #super_gaussian = empty + super_gaussian
+
 
         # Calculate the dimensions of the wave array
         wave_size = wave.shape[0]
         print(wave_size)
 
         # Calculate the center position for adding wave to bigplot
-        center_x = bigplot.shape[0] // 2
-        center_y = bigplot.shape[1] // 2
+        #center_x = super_gaussian.shape[0] // 2
+        #center_y = super_gaussian.shape[1] // 2
 
         # Calculate the indices for adding the wave to the center of bigplot
-        x_start = center_x - wave_size // 2
-        x_end = x_start + wave_size
-        y_start = center_y - wave_size // 2
-        y_end = y_start + wave_size
+       # x_start = center_x - wave_size // 2
+       # x_end = x_start + wave_size
+       # y_start = center_y - wave_size // 2
+       # y_end = y_start + wave_size
 
         # Add the wave to the center of the bigplot array
 
@@ -88,9 +100,9 @@ def update(val):
 
         # Perform inverse Fourier transform
         ifft_result = np.fft.ifft2(fft_result * distance)
-        bigplot[x_start:x_end, y_start:y_end] += ifft_result
-        print(x_start, x_end, y_start, y_end)
-        print(bigplot[640,640])
+       # super_gaussian[x_start:x_end, y_start:y_end] *= ifft_result
+       #  print(x_start, x_end, y_start, y_end)
+
 
         # Normalize the intensity
         intensity = np.abs(ifft_result) ** 2
