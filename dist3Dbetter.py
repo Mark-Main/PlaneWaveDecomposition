@@ -8,23 +8,29 @@ import distanceTerm
 import tilt_func
 import csv
 
+
+def add_random_scatterer(array, amplitude):
+    shape = array.shape
+    random_phase = amplitude * np.random.random(shape)
+    return array * np.exp(1j * random_phase)
+
 # Parameters
-res = 8
-res2 = 64
+res = 64
+res2 = 128
 x = np.linspace(-0.25, 0.25, res)
 y = np.linspace(-0.25, 0.25, res)
 X, Y = np.meshgrid(x, y)
 
-x2 = np.linspace(-4, 4, res2)
-y2 = np.linspace(-4, 4, res2)
+x2 = np.linspace(-0.5, 0.5, res2)
+y2 = np.linspace(-0.5, 0.5, res2)
 X2, Y2 = np.meshgrid(x2, y2)
 
-p_init = 1  # Initial radial mode
-l_init = 2  # Initial azimuthal mode
-w0 = 0.1  # Waist parameter
-z_init = [0, 3, 10, 20]  # Propagation distances for slices
+p_init = 0 # Initial radial mode
+l_init = 6  # Initial azimuthal mode
+w0 = 0.05  # Waist parameter
+z_init = [0,500,1000,2000]  # Propagation distances for slices
 
-s = 0.025
+s = 0.2
 λ = 600 / 1000000000
 
 sigma = 1.0  # Standard deviation of the super Gaussian
@@ -41,6 +47,10 @@ ax2 = fig.add_subplot(122, projection='3d')  # Right subplot
 # Create text boxes for phase shift
 tip_text_box = TextBox(plt.axes([0.85, 0.9, 0.1, 0.05]), 'Phase Shift Tip', initial=str(phaseshifttip_init))
 tilt_text_box = TextBox(plt.axes([0.85, 0.85, 0.1, 0.05]), 'Phase Shift Tilt', initial=str(phaseshifttilt_init))
+
+
+intensity_data = []
+phase_data = []
 
 
 # Update function for text boxes
@@ -100,7 +110,11 @@ def update(val):
 
         # Multiply wave and distance arrays
         product = np.multiply(super_gaussian, np.exp(1j * N))
-
+        
+        # Add random scatterer
+        amplitude_of_scatterer = 3  # You can adjust this amplitude based on your needs
+        product = add_random_scatterer(product, amplitude_of_scatterer)
+        
         # Take Fourier transform
         fft_result = np.fft.fft2(product)
 
@@ -111,26 +125,22 @@ def update(val):
         intensity = np.abs(ifft_result) ** 2
         intensity /= np.max(intensity)
 
-        filename = 'array_data.csv'
-        with open(filename, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerows(intensity)
 
-        print(f"Array data saved as {filename}")
+        print(f"Map {i} done")
 
         phase = np.angle(ifft_result)
 
-        # Create custom colormap with alpha channel for transparency
-        cmap = plt.cm.inferno
-
-        # Plot the 2D slice in the 3D plot with transparent areas
-        ax.plot_surface(X2, Y2, z_init[i] * np.ones_like(X2), facecolors=cmap(intensity),
-                        rstride=1, cstride=1, shade=False)
-
-        ax2.plot_surface(X2, Y2, z_init[i] * np.ones_like(X2), facecolors=cmap(phase),
-                         rstride=1, cstride=1, shade=False)
+        intensity_data.append(intensity)
+        phase_data.append(phase)
 
     # Set limits and labels for the 3D plots
+    for i in range(len(z_init)):
+        cmap = plt.cm.inferno
+        ax.plot_surface(X2, Y2, z_init[i] * np.ones_like(X2), facecolors=cmap(intensity_data[i]),
+                        rstride=1, cstride=1, shade=False)
+
+        ax2.plot_surface(X2, Y2, z_init[i] * np.ones_like(X2), facecolors=cmap(phase_data[i]),
+                        rstride=1, cstride=1, shade=False)
 
     ax.set_zlim(0, max(z_init))
     ax.set_xlabel('X')
@@ -145,8 +155,8 @@ def update(val):
     ax2.set_title('2D Phase Plots in 3D')
 
     # Set the rotation angles
-    ax.view_init(elev=-20, azim=0, roll=270)
-    ax2.view_init(elev=-20, azim=0, roll=270)
+    ax.view_init(elev=-50, azim=0, roll=270)
+    ax2.view_init(elev=-50, azim=0, roll=270)
 
     # Set the aspect ratio to make it a cuboid
     ax.set_box_aspect([15, 15, 50])
