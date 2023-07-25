@@ -7,37 +7,35 @@ import generateLaguerre2DnoZ
 import distanceTerm
 import tilt_func
 import csv
+import randomScatter
+import supergaussian
 
 
-def add_random_scatterer(array, amplitude):
-    shape = array.shape
-    random_phase = amplitude * np.random.random(shape)
-    return array * np.exp(1j * random_phase)
 
 # Parameters
-res = 64
+res = 128
 res2 = 128
 x = np.linspace(-0.25, 0.25, res)
 y = np.linspace(-0.25, 0.25, res)
 X, Y = np.meshgrid(x, y)
 
-x2 = np.linspace(-0.5, 0.5, res2)
-y2 = np.linspace(-0.5, 0.5, res2)
+x2 = np.linspace(-0.25, 0.25, res2)
+y2 = np.linspace(-0.25, 0.25, res2)
 X2, Y2 = np.meshgrid(x2, y2)
 
 p_init = 0 # Initial radial mode
 l_init = 6  # Initial azimuthal mode
-w0 = 0.05  # Waist parameter
-z_init = [0,500,1000,2000]  # Propagation distances for slices
+w0 = 0.01  # Waist parameter
+z_init = [0,40]  # Propagation distances for slices
 
-s = 0.2
+s = 0.1
 λ = 600 / 1000000000
 
 sigma = 1.0  # Standard deviation of the super Gaussian
 exponent = 4  # Exponent controlling the shape of the super Gaussian
 
-phaseshifttip_init = 0
-phaseshifttilt_init = 0
+phaseshifttip_init = 120
+phaseshifttilt_init = 120
 
 # Create the figure and axes for the 3D plots
 fig = plt.figure(figsize=(20, 25))
@@ -76,11 +74,10 @@ def update(val):
     for i in range(len(z_init)):
         # Generate the initial Laguerre-Gaussian beam
         wave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p_init, l_init, w0)
-        L, M, N = tilt_func.tilttip(res2, phaseshifttip, phaseshifttilt)  # Modify size of N
+        N = tilt_func.tilttip(res2, phaseshifttip, phaseshifttilt)  # Modify size of N
 
         # Generate the super Gaussian function
-        R = np.sqrt((X2) ** 2 + (Y2) ** 2)
-        super_gaussian = np.exp(-(R / sigma) ** exponent)
+        super_gaussian = supergaussian.super_gaussian(X2, Y2, sigma, exponent)
 
         # Normalize the super Gaussian
         super_gaussian /= np.max(super_gaussian)
@@ -113,7 +110,7 @@ def update(val):
         
         # Add random scatterer
         amplitude_of_scatterer = 3  # You can adjust this amplitude based on your needs
-        product = add_random_scatterer(product, amplitude_of_scatterer)
+        product = randomScatter.add_random_scatterer(product, amplitude_of_scatterer)
         
         # Take Fourier transform
         fft_result = np.fft.fft2(product)
