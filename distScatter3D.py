@@ -17,8 +17,8 @@ waveRes = 128
 x = np.linspace(-0.25, 0.25, waveRes)
 y = np.linspace(-0.25, 0.25, waveRes)
 X, Y = np.meshgrid(x, y)
-p_init = 2 # Initial radial mode
-l_init = 0  # Initial azimuthal mode
+p_init = 0 # Initial radial mode
+l_init = 3  # Initial azimuthal mode
 w0 = 0.01  # Waist parameter
 
 # Tip Tilt parameters
@@ -46,36 +46,33 @@ phaseshifttilt_init = 0
 
 fullRes = 256
 s = 0.1 # Aperature size
-λ = 600 / 1000000000 # Wavelength of light
+λ = 600e-9 # Wavelength of light
 
 #------------------------------------------------------------
 
 # Defining distance steps with or without scattering 
 
-computeStep = 5 # How far does the wave propogate at each computation step
+computeStep = 1 # How far does the wave propogate at each computation step
 finalDistance = 100 # How far does the wave propogate in total
-scatterPoints = [5,15,25]# Points at which scattering will be carried out
-displayPoints = [0,0,5,10,15,20,25] # Points at which the wave will be displayed
-
+scatterPoints = [20,30,40]# Points at which scattering will be carried out
+displayPoints = [0,10,20,30,40,50] # Points at which the wave will be displayed
 # Creating plot arrays 
 
 intensity_data = []
 phase_data = []
-wave = []
+
 
 #------------------------------------------------------------
 
 
 # Create the initial wavefront 
 
-wave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p_init, l_init, w0)
+oldwave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p_init, l_init, w0)
 tiptilt = tilt_func.tilttip(gaussRes, phaseshifttip_init, phaseshifttilt_init)
 
-wave = computeWave.makeWave(wave, tiptilt, X2, Y2, sigma, exponent)
-wave = np.fft.ifft2(wave * distanceTerm.disStep(0, gaussRes, s, λ))
-intensity_data.append(np.abs(wave) ** 2)
-phase_data.append(np.angle(wave))
-plt.imshow(np.abs(wave) ** 2)
+oldwave = computeWave.makeWave(oldwave, tiptilt, X2, Y2, sigma, exponent)
+oldwave = np.fft.ifft2(oldwave * distanceTerm.disStep(0, gaussRes, s, λ))
+plt.imshow(np.abs(oldwave) ** 2, cmap='inferno')
 
 #------------------------------------------------------------
 
@@ -83,12 +80,13 @@ plt.imshow(np.abs(wave) ** 2)
 
 for i in range(0, finalDistance, computeStep):
     if i in scatterPoints:
-        wave = propogator.propogateScatter(wave, computeStep, fullRes, s, λ, 0.3)
+        wave = propogator.propogateScatter(oldwave, computeStep, fullRes, s, λ, 0.3)
     else:
-        wave = propogator.propogate(wave, computeStep, fullRes, s, λ)
+        wave = propogator.propogate(oldwave, computeStep, fullRes, s, λ)
     if i in displayPoints:
-        intensity_data.append(np.abs(wave) ** 2)
+        intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
         phase_data.append(np.angle(wave))
+    oldwave = wave
     print(i)
 
 #------------------------------------------------------------
