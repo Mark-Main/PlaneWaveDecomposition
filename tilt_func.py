@@ -7,4 +7,4 @@ def tilttip(res, phaseshifttip, phaseshifttilt):
     y = np.arange(1, res + 1, 1)
     X, Y = np.meshgrid(x, y)
     Z = (X * phaseshifttip / res) + (Y * phaseshifttilt / res)
-    return X, Y, Z
+    return  Z
