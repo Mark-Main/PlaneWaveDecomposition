@@ -13,13 +13,13 @@ import propogator
 # Parameters
 # Laguerre-Gaussian parameters
 
-waveRes = 128
+waveRes = 64
 x = np.linspace(-0.25, 0.25, waveRes)
 y = np.linspace(-0.25, 0.25, waveRes)
 X, Y = np.meshgrid(x, y)
-p_init = 0 # Initial radial mode
+p_init = 2 # Initial radial mode
 l_init = 3  # Initial azimuthal mode
-w0 = 0.01  # Waist parameter
+w0 = 0.07  # Waist parameter
 
 # Tip Tilt parameters
 
@@ -29,8 +29,8 @@ phaseshifttilt_init = 0
 # Super Gaussian parameters (probably don't need to change these)
 
 gaussRes = 256
-x2 = np.linspace(-0.5, 0.5, gaussRes)
-y2 = np.linspace(-0.5, 0.5, gaussRes)
+x2 = np.linspace(-1, 1, gaussRes)
+y2 = np.linspace(-1, 1, gaussRes)
 X2, Y2 = np.meshgrid(x2, y2)
 sigma = 1.0  # Standard deviation of the super Gaussian
 exponent = 4  # Exponent controlling the shape of the super Gaussian
@@ -52,10 +52,10 @@ s = 0.1 # Aperature size
 
 # Defining distance steps with or without scattering 
 
-computeStep = 1 # How far does the wave propogate at each computation step
-finalDistance = 100 # How far does the wave propogate in total
-scatterPoints = [20,30,40]# Points at which scattering will be carried out
-displayPoints = [0,10,20,30,40,50] # Points at which the wave will be displayed
+computeStep = 50 # How far does the wave propogate at each computation step
+finalDistance = 500 # How far does the wave propogate in total
+scatterPoints = [200]# Points at which scattering will be carried out
+displayPoints = [0,50,100,200,400] # Points at which the wave will be displayed
 # Creating plot arrays 
 
 intensity_data = []
@@ -80,7 +80,7 @@ plt.imshow(np.abs(oldwave) ** 2, cmap='inferno')
 
 for i in range(0, finalDistance, computeStep):
     if i in scatterPoints:
-        wave = propogator.propogateScatter(oldwave, computeStep, fullRes, s, λ, 0.3)
+        wave = propogator.propogateScatter(oldwave, computeStep, fullRes, s, λ, 10)
     else:
         wave = propogator.propogate(oldwave, computeStep, fullRes, s, λ)
     if i in displayPoints:
