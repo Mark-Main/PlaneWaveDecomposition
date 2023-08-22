@@ -3,17 +3,19 @@ import random
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import bloodVolumeCreator
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 # Example usage
-grid_size = 1000
-num_toroids = 25  # Changed from num_spheres for toroids
-major_radius_range = (4,4)  # Adjust the range as needed
-minor_radius_range = (7,7)    # Adjust the range as needed
+grid_size = 100
+num_toroids = 5  # Changed from num_spheres for toroids
+major_radius_range = (5,5)  # Adjust the range as needed
+minor_radius_range = (8,8)    # Adjust the range as needed
 voxel_resolution = 1
 
-resulting_space, x_slices = bloodVolumeCreator.generate_toroids(grid_size, num_toroids, major_radius_range, minor_radius_range, voxel_resolution)
+resulting_space, x_slices = bloodVolumeCreator.generate_toroids_with_random_rotations(grid_size, num_toroids, major_radius_range, minor_radius_range, voxel_resolution)
 print("Hello")
-
+'''
 # Create an animation to go through slices like frames in a video
 fig, ax = plt.subplots()
 slice_start = 0
@@ -30,5 +32,18 @@ def update(frame):
     slice_index = (slice_index + 1) % (slice_end + 1)
 
 ani = FuncAnimation(fig, update, interval=200)  # Interval in milliseconds
-plt.show() 
+plt.show() '''
 
+
+# Create a 3D plot
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot the 3D voxel grid
+ax.voxels(resulting_space, facecolors='red', edgecolor='red')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+
+plt.show()
