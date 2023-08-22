@@ -16,8 +16,8 @@ def generate_torus(R, r, num_points):
 num_points = 100
 
 # Radii of the torus
-R = 10  # Major radius (increase for bigger torus)
-r = 8   # Minor radius (decrease for smaller torus)
+R = 25  # Major radius (increase for bigger torus)
+r = 22   # Minor radius (decrease for smaller torus)
 
 # Grid parameters
 grid_size = 200  # Increase for a larger grid
@@ -25,13 +25,16 @@ voxel_resolution = 1.0
 
 # Create a 3D plot
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+
+# Plot the original toroids
+ax_original = fig.add_subplot(121, projection='3d')
+ax_original.set_title('Original Toroids')
 
 # List to store toroid positions
 toroid_positions = []
 
 # Generate and plot 10 toroids with spacing and collision detection
-for _ in range(200):
+for _ in range(100):
     toroid_collides = True
 
     while toroid_collides:
@@ -52,9 +55,9 @@ for _ in range(200):
         z_scaled = z_rotated / 5
 
         # Set the toroid position with spacing
-        x_offset = np.random.uniform(-50, 50)  # Adjust the range for spacing
-        y_offset = np.random.uniform(-50, 50)
-        z_offset = np.random.uniform(-50, 50)
+        x_offset = np.random.uniform(-100, 100)  # Adjust the range for spacing
+        y_offset = np.random.uniform(-100, 100)
+        z_offset = np.random.uniform(-100, 100)
 
         x_final = x_scaled + x_offset
         y_final = y_scaled + y_offset
@@ -70,12 +73,24 @@ for _ in range(200):
     toroid_positions.append(np.array([x_final, y_final, z_final]))
 
     # Plot the scaled and positioned torus
-    ax.plot_surface(x_final, y_final, z_final, cmap='viridis', alpha=0.5)
+    ax_original.plot_surface(x_final, y_final, z_final, cmap='viridis', alpha=0.5)
 
-# Set labels and title
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.set_title('Grid with Small Toroids and Spacing')
+# Set labels
+ax_original.set_xlabel('X')
+ax_original.set_ylabel('Y')
+ax_original.set_zlabel('Z')
+
+# Voxelization and plotting of the voxelized grid
+voxel_grid = np.zeros((grid_size, grid_size, grid_size), dtype=int)
+for pos in toroid_positions:
+    x_indices = np.clip((pos[0] + grid_size / 2).astype(int), 0, grid_size - 1)
+    y_indices = np.clip((pos[1] + grid_size / 2).astype(int), 0, grid_size - 1)
+    z_indices = np.clip((pos[2] + grid_size / 2).astype(int), 0, grid_size - 1)
+    voxel_grid[x_indices, y_indices, z_indices] = 1
+
+# Plot the voxelized version
+ax_voxel = fig.add_subplot(122, projection='3d')
+ax_voxel.set_title('Voxelized Toroids')
+ax_voxel.voxels(voxel_grid, facecolors='red',edgecolor='r')
 
 plt.show()
