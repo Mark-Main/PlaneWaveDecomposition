@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
 def generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution):
     # Define parameters
@@ -11,6 +12,7 @@ def generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resol
     
     # Place spheres randomly within the grid
     for radius in sphere_radii:
+        
         is_overlap = True
         while is_overlap:
             sphere_center = (
@@ -52,46 +54,31 @@ def generate_toroids(grid_size, num_toroids, major_radius_range, minor_radius_ra
     # Define parameters
     toroid_major_radii = np.random.uniform(major_radius_range[0], major_radius_range[1], num_toroids)
     toroid_minor_radii = np.random.uniform(minor_radius_range[0], minor_radius_range[1], num_toroids)
-    
+
     # Initialize the 3D grid
     space = np.zeros((grid_size, grid_size, grid_size), dtype=int)
-    
-    # Place toroids randomly within the grid
+
     for i in range(num_toroids):
+        print(i)
         is_overlap = True
         while is_overlap:
-            toroid_center = (
-                random.randint(0 + int(toroid_major_radii[i]), grid_size - int(toroid_major_radii[i])),
-                random.randint(0 + int(toroid_major_radii[i]), grid_size - int(toroid_major_radii[i])),
-                random.randint(0 + int(toroid_major_radii[i]), grid_size - int(toroid_major_radii[i]))
-            )
+            toroid_center = np.array([
+                random.randint(int(toroid_major_radii[i] / voxel_resolution), grid_size - int(toroid_major_radii[i] / voxel_resolution)),
+                random.randint(int(toroid_major_radii[i] / voxel_resolution), grid_size - int(toroid_major_radii[i] / voxel_resolution)),
+                random.randint(int(toroid_major_radii[i] / voxel_resolution), grid_size - int(toroid_major_radii[i] / voxel_resolution))
+            ])
+
+            x_coords, y_coords, z_coords = np.ogrid[0:grid_size, 0:grid_size, 0:grid_size]
+            distance_to_major_axis = np.sqrt(((x_coords * voxel_resolution) - toroid_center[0])**2 + ((y_coords * voxel_resolution) - toroid_center[1])**2)
+            distance = np.sqrt((distance_to_major_axis - toroid_major_radii[i])**2 + ((z_coords * voxel_resolution) - toroid_center[2])**2)
+            toroid_voxels = distance <= toroid_minor_radii[i]
             
-            is_overlap = False
-            for x in range(grid_size):
-                for y in range(grid_size):
-                    for z in range(grid_size):
-                        distance_to_major_axis = np.sqrt((x - toroid_center[0])**2 + (y - toroid_center[1])**2)
-                        distance = np.sqrt((distance_to_major_axis - toroid_major_radii[i])**2 + (z - toroid_center[2])**2)
-                        if distance <= toroid_minor_radii[i]:
-                            if space[x, y, z] == 1:
-                                is_overlap = True
-                                break
-                    if is_overlap:
-                        break
-                if is_overlap:
-                    break
-            
-            # Update the space with the new toroid
-            int_voxel_resolution = int(voxel_resolution * max(toroid_major_radii[i], toroid_minor_radii[i]))
-            for x in range(grid_size):
-                for y in range(grid_size):
-                    for z in range(grid_size):
-                        distance_to_major_axis = np.sqrt((x - toroid_center[0])**2 + (y - toroid_center[1])**2)
-                        distance = np.sqrt((distance_to_major_axis - toroid_major_radii[i])**2 + (z - toroid_center[2])**2)
-                        if distance <= toroid_minor_radii[i]:
-                            space[x, y, z] = 1
-    
+            # Check for overlap using any() on the existing space
+            if not np.any(space[toroid_voxels]):
+                space[toroid_voxels] = 1
+                is_overlap = False
+
     # Generate 2D slices along the x-axis
     x_slices = [space[x, :, :] for x in range(grid_size)]
-    
+
     return space, x_slices
