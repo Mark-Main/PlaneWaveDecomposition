@@ -13,7 +13,7 @@ def propogateScatterMask(wave, computationStep, res2, s , λ, scattermask):
         # wave = np.multiply(wave, np.exp(1j * N))
 
         # Add random scatterer
-        transformed_scattermask = np.where(scattermask == 0, 1, 0.7)
+        transformed_scattermask = np.where(scattermask == 0, 1, 0)
         product = np.multiply(wave, transformed_scattermask)
 
         
@@ -22,6 +22,7 @@ def propogateScatterMask(wave, computationStep, res2, s , λ, scattermask):
 
         # Perform inverse Fourier transform
         ifft_result = np.fft.ifft2(fft_result * distance)
+       
         
 
         return ifft_result

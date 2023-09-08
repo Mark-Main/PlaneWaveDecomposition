@@ -10,17 +10,20 @@ import supergaussian
 import computeWave 
 import propogator
 import bloodVolumeCreator
+from matplotlib.animation import FuncAnimation
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 
 # Parameters
 # Laguerre-Gaussian parameters
 
 waveRes = 512
-x = np.linspace(-0.05, 0.05, waveRes)
-y = np.linspace(-0.05, 0.05, waveRes)
+x = np.linspace(-100e-6, 100e-6, waveRes)
+y = np.linspace(-100e-6, 100e-6, waveRes)
 X, Y = np.meshgrid(x, y)
-p_init = 2 # Initial radial mode
-l_init = 3  # Initial azimuthal mode
-w0 = 0.01  # Waist parameter
+p_init = 6 # Initial radial mode
+l_init = 6 # Initial azimuthal mode
+w0 = 20e-6  # Waist parameter
 
 # Tip Tilt parameters
 
@@ -38,9 +41,9 @@ s = 0.1 # Aperature size
 
 # Defining distance steps with or without scattering 
 
-computeStep = 1 # How far does the wave propogate at each computation step
-finalDistance = 100 # How far does the wave propogate in total
-displayPoints = [0,20,40,60,80,95] # Points at which the wave will be displayed
+computeStep = 20 # How far does the wave propogate at each computation step
+finalDistance = 500 # How far does the wave propogate in total
+displayPoints = [100,200,300,400] # Points at which the wave will be displayed
 # Creating plot arrays 
 
 intensity_data = []
@@ -65,12 +68,13 @@ plt.imshow(np.angle(oldwave), cmap='inferno')
 # Generate Blood volume and slices
 
 grid_size = waveRes
-num_spheres =50000
-min_radius = 3
-max_radius = 3
+num_spheres =1000
+min_radius = 6
+max_radius = 6
 voxel_resolution = waveRes/100
 
 bloodVol, bloodSlices = bloodVolumeCreator.generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution)
+invert_blood = np.where(bloodSlices == 0, 1, 0)
 
 #------------------------------------------------------------
 
@@ -88,17 +92,25 @@ for i in range(0, finalDistance, computeStep):
 # Create the figure and axes for the 3D plots
 
 fig = plt.figure(figsize=(20, 25))
-ax = fig.add_subplot(121, projection='3d')  # Left subplot
-ax2 = fig.add_subplot(122, projection='3d')  # Right subplot
+ax = fig.add_subplot(131, projection='3d')  # Left subplot
+ax2 = fig.add_subplot(132, projection='3d')  # Right subplot
+ax3 = fig.add_subplot(133, projection='3d')  # Right subplot
 
 
-for i in range(len(displayPoints)):
+
+for display_point in displayPoints:
+    print(display_point)
     cmap = plt.cm.inferno
-    ax.plot_surface(X, Y, displayPoints[i] * np.ones_like(X), facecolors=cmap(intensity_data[i]),
+    cmap2 = plt.cm.binary
+    index = displayPoints.index(display_point)
+    ax.plot_surface(X, Y, display_point * np.ones_like(X), facecolors=cmap(intensity_data[index]),
                     rstride=1, cstride=1, shade=False)
 
-    ax2.plot_surface(X, Y, displayPoints[i] * np.ones_like(X), facecolors=cmap(phase_data[i]),
+    ax2.plot_surface(X, Y, display_point * np.ones_like(X), facecolors=cmap(phase_data[index]),
                     rstride=1, cstride=1, shade=False)
+    ax3.plot_surface(X, Y, display_point * np.ones_like(X), facecolors=cmap2(bloodSlices[index]),
+                    rstride=1, cstride=1, shade=False)
+    
 
 
 ax.set_zlim(0, max(displayPoints))
@@ -113,17 +125,39 @@ ax2.set_ylabel('Y')
 ax2.set_zlabel('Distance')
 ax2.set_title('2D Phase Plots in 3D')
 
+
+
 # Set the rotation angles
 ax.view_init(elev=-50, azim=0, roll=270)
 ax2.view_init(elev=-50, azim=0, roll=270)
+ax3.view_init(elev=-50, azim=0, roll=270)
+
 
 # Set the aspect ratio to make it a cuboid
 ax.set_box_aspect([15, 15, 50])
 ax2.set_box_aspect([15, 15, 50])
+ax3.set_box_aspect([15, 15, 50])
+
 
 # Show the plots
 fig.canvas.draw_idle()
 
+plt.show()
+
+fig, axs = plt.subplots(1, 1, figsize=(10, 5))
+
+slice_start = 0
+slice_end = grid_size - 1
+slice_index = slice_start
+
+def update(frame):
+    global slice_index
+    axs.clear()
+    axs.imshow(invert_blood[slice_index], cmap='gray')
+    axs.set_title(f'Original Slice at X = {slice_index}')
+    slice_index = (slice_index + 1) % (slice_end + 1)
+
+ani = FuncAnimation(fig, update, interval=100)  # Interval in milliseconds
 plt.show()
 
 

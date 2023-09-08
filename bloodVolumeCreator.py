@@ -92,58 +92,48 @@ def generate_torus(R, r, num_points):
     z = r * np.sin(theta)
     return x, y, z
 
-def is_inside_torus(x, y, z, toroid_position, R, r):
-    distance = np.linalg.norm(np.array([x, y, z]) - toroid_position)
-    return distance <= 2 * r
-
 def generate_voxelized_toroids(grid_size, num_toroids, R, r, num_points=100):
     toroid_positions = []
     voxel_grid = np.zeros((grid_size, grid_size, grid_size), dtype=int)
 
     for _ in range(num_toroids):
+        print("Generating toroid:", _)
         toroid_collides = True
+        phi = np.random.uniform(0, 2*np.pi)
+        theta = np.random.uniform(0, 2*np.pi)
 
-        while toroid_collides:
-            x, y, z = generate_torus(R, r, num_points)
+        for i in range(0,R):
+            print(i)
+            while toroid_collides:
+                x, y, z = generate_torus(R, r-i, num_points)
 
-            phi = np.random.uniform(0, 2*np.pi)
-            theta = np.random.uniform(0, 2*np.pi)
+                x_rotated = x * np.cos(theta) * np.cos(phi) - y * np.sin(phi) * np.cos(theta) + z * np.sin(theta)
+                y_rotated = x * np.sin(phi) + y * np.cos(phi)
+                z_rotated = -x * np.sin(theta) * np.cos(phi) + y * np.sin(theta) * np.sin(phi) + z * np.cos(theta)
 
-            x_rotated = x * np.cos(theta) * np.cos(phi) - y * np.sin(phi) * np.cos(theta) + z * np.sin(theta)
-            y_rotated = x * np.sin(phi) + y * np.cos(phi)
-            z_rotated = -x * np.sin(theta) * np.cos(phi) + y * np.sin(theta) * np.sin(phi) + z * np.cos(theta)
+                x_scaled = x_rotated / 5
+                y_scaled = y_rotated / 5
+                z_scaled = z_rotated / 5
 
-            x_scaled = x_rotated / 5
-            y_scaled = y_rotated / 5
-            z_scaled = z_rotated / 5
+                x_offset = np.random.uniform(-(grid_size-R), (grid_size-R))
+                y_offset = np.random.uniform(-(grid_size-R), (grid_size-R))
+                z_offset = np.random.uniform(-(grid_size-R), (grid_size-R))
 
-            x_offset = np.random.uniform(-100, 100)
-            y_offset = np.random.uniform(-100, 100)
-            z_offset = np.random.uniform(-100, 100)
+                x_final = x_scaled + x_offset
+                y_final = y_scaled + y_offset
+                z_final = z_scaled + z_offset
 
-            x_final = x_scaled + x_offset
-            y_final = y_scaled + y_offset
-            z_final = z_scaled + z_offset
+                toroid_collides = any(
+                    np.linalg.norm(np.array([x_final, y_final, z_final]) - pos) < 2 * r
+                    for pos in toroid_positions
+                )
 
-            x_indices = np.clip((x_final + grid_size / 2).astype(int), 0, grid_size - 1)
-            y_indices = np.clip((y_final + grid_size / 2).astype(int), 0, grid_size - 1)
-            z_indices = np.clip((z_final + grid_size / 2).astype(int), 0, grid_size - 1)
+                toroid_positions.append(np.array([x_final, y_final, z_final]))
 
-            toroid_collides = any(
-                is_inside_torus(x_idx, y_idx, z_idx, toroid_position, R, r)
-                for toroid_position in toroid_positions
-                for x_idx in range(x_indices - 2*r, x_indices + 2*r + 1)
-                for y_idx in range(y_indices - 2*r, y_indices + 2*r + 1)
-                for z_idx in range(z_indices - 2*r, z_indices + 2*r + 1)
-            )
-
-        toroid_positions.append(np.array([x_final, y_final, z_final]))
-
-        for x_idx in range(x_indices - 2*r, x_indices + 2*r + 1):
-            for y_idx in range(y_indices - 2*r, y_indices + 2*r + 1):
-                for z_idx in range(z_indices - 2*r, z_indices + 2*r + 1):
-                    if is_inside_torus(x_idx, y_idx, z_idx, np.array([x_final, y_final, z_final]), R, r):
-                        voxel_grid[x_idx, y_idx, z_idx] = 1
+                x_indices = np.clip((x_final + grid_size / 2).astype(int), 0, grid_size - 1)
+                y_indices = np.clip((y_final + grid_size / 2).astype(int), 0, grid_size - 1)
+                z_indices = np.clip((z_final + grid_size / 2).astype(int), 0, grid_size - 1)
+                voxel_grid[x_indices, y_indices, z_indices] = 1
 
     # Generate 2D slices along the x-axis
     x_slices = [voxel_grid[x, :, :] for x in range(grid_size)]        
