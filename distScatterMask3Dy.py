@@ -41,9 +41,9 @@ s = 0.1 # Aperature size
 
 # Defining distance steps with or without scattering 
 
-computeStep = 20 # How far does the wave propogate at each computation step
-finalDistance = 500 # How far does the wave propogate in total
-displayPoints = [100,200,300,400] # Points at which the wave will be displayed
+computeStep = 1 # How far does the wave propogate at each computation step
+finalDistance = 20000 # How far does the wave propogate in total
+displayPoints = [10,20,30,40,50,60,70,80,90,100] # Points at which the wave will be displayed
 # Creating plot arrays 
 
 intensity_data = []
@@ -68,30 +68,74 @@ plt.imshow(np.angle(oldwave), cmap='inferno')
 # Generate Blood volume and slices
 
 grid_size = waveRes
-num_spheres =1000
-min_radius = 6
-max_radius = 6
+num_spheres =10000
+min_radius = 1
+max_radius = 1
 voxel_resolution = waveRes/100
 
 bloodVol, bloodSlices = bloodVolumeCreator.generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution)
-invert_blood = np.where(bloodSlices == 0, 1, 0)
+
 
 #------------------------------------------------------------
 
 # Propogate the wavefront
 
 for i in range(0, finalDistance, computeStep):
-    wave = propogator.propogateScatterMask(oldwave, computeStep*1e-6, waveRes, s, λ, bloodSlices[i])
-    intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
-    phase_data.append(np.angle(wave))
-    oldwave = wave
+    if i < grid_size:
+        wave = propogator.propogateScatterMask(oldwave, computeStep*1e-6, waveRes, s, λ, bloodSlices[i])
+        intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+        phase_data.append(np.angle(wave))
+        oldwave = wave
+    else:
+        wave = propogator.propogate(oldwave, computeStep*1e-6, waveRes, s, λ)
+        intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+        phase_data.append(np.angle(wave))
+        oldwave = wave        
     print(i)
 
 #------------------------------------------------------------
 
+# Show the plots
+
+fig, axs = plt.subplots(1, 2, figsize=(15, 5))  # Create two subplots
+
+slice_start = 0
+slice_end = finalDistance - 1
+slice_index = slice_start
+
+def update(frame):
+    global slice_index
+    axs[0].clear()
+    axs[1].clear()
+
+    axs[0].imshow(intensity_data[slice_index], cmap='inferno')
+    axs[0].set_title(f'Intensity Slice at X = {slice_index}')
+
+    axs[1].imshow(phase_data[slice_index], cmap='inferno')  # Assuming 'viridis' colormap for phase
+    axs[1].set_title(f'Phase Slice at X = {slice_index}')
+
+    slice_index = (slice_index + 1) % (slice_end + 1)
+
+ani = FuncAnimation(fig, update, interval=100)  # Interval in milliseconds
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Create the figure and axes for the 3D plots
 
-fig = plt.figure(figsize=(20, 25))
+'''fig = plt.figure(figsize=(20, 25))
 ax = fig.add_subplot(131, projection='3d')  # Left subplot
 ax2 = fig.add_subplot(132, projection='3d')  # Right subplot
 ax3 = fig.add_subplot(133, projection='3d')  # Right subplot
@@ -153,12 +197,12 @@ slice_index = slice_start
 def update(frame):
     global slice_index
     axs.clear()
-    axs.imshow(invert_blood[slice_index], cmap='gray')
+    axs.imshow(bloodSlices[slice_index], cmap='gray')
     axs.set_title(f'Original Slice at X = {slice_index}')
     slice_index = (slice_index + 1) % (slice_end + 1)
 
 ani = FuncAnimation(fig, update, interval=100)  # Interval in milliseconds
-plt.show()
+plt.show()'''
 
 
 

@@ -26,6 +26,6 @@ def disStep(d, res, s, λ):
             #print(distance_factor)
             
             # Compute the complex value by multiplying with d and exponentiating with (0 + 1j)
-            result[x, y] = np.exp(d* distance_factor * (0 + 1j))
+            result[x, y] = np.exp(d* distance_factor * (0 - 1j))
     
     return result
