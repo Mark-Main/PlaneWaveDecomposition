@@ -21,8 +21,8 @@ waveRes = 512
 x = np.linspace(-100e-6, 100e-6, waveRes)
 y = np.linspace(-100e-6, 100e-6, waveRes)
 X, Y = np.meshgrid(x, y)
-p_init = 6 # Initial radial mode
-l_init = 6 # Initial azimuthal mode
+p_init = 0 # Initial radial mode
+l_init = 0 # Initial azimuthal mode
 w0 = 20e-6  # Waist parameter
 
 # Tip Tilt parameters
@@ -42,7 +42,7 @@ s = 0.1 # Aperature size
 # Defining distance steps with or without scattering 
 
 computeStep = 1 # How far does the wave propogate at each computation step
-finalDistance = 20000 # How far does the wave propogate in total
+finalDistance = 800 # How far does the wave propogate in total
 displayPoints = [10,20,30,40,50,60,70,80,90,100] # Points at which the wave will be displayed
 # Creating plot arrays 
 
@@ -68,9 +68,9 @@ plt.imshow(np.angle(oldwave), cmap='inferno')
 # Generate Blood volume and slices
 
 grid_size = waveRes
-num_spheres =10000
-min_radius = 1
-max_radius = 1
+num_spheres =100000
+min_radius = 6
+max_radius = 10
 voxel_resolution = waveRes/100
 
 bloodVol, bloodSlices = bloodVolumeCreator.generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution)
@@ -87,7 +87,7 @@ for i in range(0, finalDistance, computeStep):
         phase_data.append(np.angle(wave))
         oldwave = wave
     else:
-        wave = propogator.propogate(oldwave, computeStep*1e-6, waveRes, s, λ)
+        wave = propogator.propogate(oldwave, computeStep*1e-1, waveRes, s, λ)
         intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
         phase_data.append(np.angle(wave))
         oldwave = wave        
@@ -116,7 +116,7 @@ def update(frame):
 
     slice_index = (slice_index + 1) % (slice_end + 1)
 
-ani = FuncAnimation(fig, update, interval=100)  # Interval in milliseconds
+ani = FuncAnimation(fig, update, interval=300)  # Interval in milliseconds
 plt.show()
 
 

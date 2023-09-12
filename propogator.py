@@ -13,7 +13,7 @@ def propogateScatterMask(wave, computationStep, res2, s , λ, scattermask):
         # wave = np.multiply(wave, np.exp(1j * N))
 
         # Add random scatterer
-        transformed_scattermask = np.where(scattermask == 0, 1, 0)
+        transformed_scattermask = np.where(scattermask == 0, 1, 0.95)
         product = np.multiply(wave, transformed_scattermask)
 
         
