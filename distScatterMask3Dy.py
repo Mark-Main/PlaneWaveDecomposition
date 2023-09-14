@@ -12,6 +12,8 @@ import propogator
 import bloodVolumeCreator
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from matplotlib.widgets import Slider
+import os
 
 
 # Parameters
@@ -68,7 +70,7 @@ plt.imshow(np.angle(oldwave), cmap='inferno')
 # Generate Blood volume and slices
 
 grid_size = waveRes
-num_spheres =100000
+num_spheres =500
 min_radius = 6
 max_radius = 10
 voxel_resolution = waveRes/100
@@ -96,7 +98,7 @@ for i in range(0, finalDistance, computeStep):
 #------------------------------------------------------------
 
 # Show the plots
-
+'''
 fig, axs = plt.subplots(1, 2, figsize=(15, 5))  # Create two subplots
 
 slice_start = 0
@@ -117,14 +119,56 @@ def update(frame):
     slice_index = (slice_index + 1) % (slice_end + 1)
 
 ani = FuncAnimation(fig, update, interval=300)  # Interval in milliseconds
+plt.show()'''
+
+
+
+slice_index = 0
+slice_end = len(intensity_data) - 1
+
+fig, axs = plt.subplots(1, 2)
+
+def update(frame):
+    axs[0].clear()
+    axs[1].clear()
+
+    axs[0].imshow(intensity_data[slice_index], cmap='inferno')
+    axs[0].set_title(f'Intensity Slice at X = {slice_index}')
+
+    axs[1].imshow(phase_data[slice_index], cmap='inferno')
+    axs[1].set_title(f'Phase Slice at X = {slice_index}')
+
+def on_slider_change(val):
+    global slice_index
+    slice_index = int(val)
+    update(slice_index)
+
+def save_frames(output_directory):
+    os.makedirs(output_directory, exist_ok=True)  # Create directory if it doesn't exist
+
+    for i, intensity_frame in enumerate(intensity_data):
+        plt.imshow(intensity_frame, cmap='inferno')
+        plt.title(f'Intensity Slice at Z = {i}')
+        plt.savefig(os.path.join(output_directory, f'intensity_frame_{i}.png'))
+        plt.close()
+
+    for i, phase_frame in enumerate(phase_data):
+        plt.imshow(phase_frame, cmap='inferno')
+        plt.title(f'Phase Slice at X = {i}')
+        plt.savefig(os.path.join(output_directory, f'phase_frame_{i}.png'))
+        plt.close()
+
+output_directory = r'C:\Users\Mark Main\Documents\SimResults'  # Replace with your desired directory
+slider_ax = plt.axes([0.1, 0.01, 0.65, 0.03])
+slider = Slider(slider_ax, 'Slice Index', 0, slice_end, valinit=0, valstep=1)
+slider.on_changed(on_slider_change)
+
+update(slice_index)
+
+# Uncomment the line below to save frames
+save_frames(output_directory)
+
 plt.show()
-
-
-
-
-
-
-
 
 
 
