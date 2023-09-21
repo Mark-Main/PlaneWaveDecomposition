@@ -12,6 +12,7 @@ from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib.widgets import Slider
 import os
+import multiprocessing
 
 
 # Parameters
@@ -30,8 +31,8 @@ max_radius = 3
 voxel_resolution = waveRes/500
 bloodVol, bloodSlices = bloodVolumeCreator.generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution)
 
-for p in range(10):
-    for l in range(10):
+for p in range(3):
+    for l in range(3):
         w0 = 20e-6  # Waist parameter
 
         # Tip Tilt parameters
@@ -52,7 +53,6 @@ for p in range(10):
 
         computeStep = 1 # How far does the wave propogate at each computation step
         finalDistance = 800 # How far does the wave propogate in total
-        displayPoints = [10,20,30,40,50,60,70,80,90,100] # Points at which the wave will be displayed
         # Creating plot arrays 
 
         intensity_data = []
@@ -74,7 +74,7 @@ for p in range(10):
 
         #------------------------------------------------------------
 
-        base_directory = r'D:\MarkSimulations\SphericalTrialLP6_2'
+        base_directory = r'/Users/Mark/Documents/Test'
 
 
         output_directory = os.path.join(base_directory, f'P={p}, L={l}')
@@ -149,9 +149,8 @@ for p in range(10):
             os.makedirs(output_directory)
 
         # Uncomment the line below to save frames
-        save_frames(output_directory)
+        #save_frames(output_directory)
 
-        plt.show()
 
 
 

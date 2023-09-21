@@ -3,31 +3,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Define the base directory
-base_directory = r'D:\MarkSimulations\SphericalTrialLP6'
-intensity_data = [[[] for _ in range(6)] for _ in range(6)]
+base_directory = r'/Users/Mark/Documents/Test'
+intensity_data = [[[] for _ in range(3)] for _ in range(3)]
 
-for p in range(6):
-    for l in range(6):
+for p in range(3):
+    for l in range(3):
         output_directory = os.path.join(base_directory, f'P={p}, L={l}')
         os.makedirs(output_directory, exist_ok=True)  # Create folder if it doesn't exist
-        for i in range(600):
+        for i in range(800):
             # Load the file
-            loaded_data = np.load(f'{output_directory}\\BinaryDataSlice{i}_p={p}_l={l}.npy')
+            loaded_data = np.load(f'{output_directory}//BinaryDataSlice{i}_p={p}_l={l}.npy')
             intensity_data[p][l].append(np.abs(loaded_data) ** 2 / np.max(np.abs(loaded_data) ** 2))
         print ("p = ",p, "l= ",l)
 
 # Create a 6x6 grid of subplots
-fig, axs = plt.subplots(6, 6, figsize=(15, 15))
+fig, axs = plt.subplots(3, 3, figsize=(15, 15))
 
 # Create a new folder to save all the plots
-output_folder = os.path.join(base_directory, 'AllPlots2')
+output_folder = os.path.join(base_directory, 'AllPlots')
 os.makedirs(output_folder, exist_ok=True)  # Create folder if it doesn't exist
 
-for i in range(600) :  # Assuming you have 5 slices
+for i in range(800) :  # Assuming you have 5 slices
     # Create a 6x6 grid of subplots
-    fig, axs = plt.subplots(6, 6, figsize=(15, 15))
-    for p in range(6):
-        for l in range(6):
+    fig, axs = plt.subplots(3, 3, figsize=(15, 15))
+    for p in range(3):
+        for l in range(3):
 
             axs[p, l].imshow(intensity_data[p][l][i], cmap='inferno')
             axs[p, l].axis('off')
