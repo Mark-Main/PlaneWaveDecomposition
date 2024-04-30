@@ -4,6 +4,29 @@ import randomScatter
 import supergaussian
 
 
+def propogateScatterMask(wave, computationStep, res2, s , λ, scattermask):
+
+        # Create distance array matching the size of the super Gaussian
+        distance = distanceTerm.disStep(computationStep, res2, s, λ)  # Modify size of distance
+
+        # Multiply wave and distance arrays
+        # wave = np.multiply(wave, np.exp(1j * N))
+
+        #Apply phase mask
+
+
+        modified_wave = np.multiply(wave, np.exp(1j * scattermask))
+
+        
+        # Take Fourier transform
+        fft_result = np.fft.fft2(modified_wave)
+
+        # Perform inverse Fourier transform
+        ifft_result = np.fft.ifft2(fft_result * distance)
+       
+        
+
+        return ifft_result
 
 def propogateScatter(wave, computationStep, res2, s , λ, scattersize):
 
