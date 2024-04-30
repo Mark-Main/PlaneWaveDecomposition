@@ -10,12 +10,12 @@ y = np.linspace(-100e-6, 100e-6, waveRes)
 X, Y = np.meshgrid(x, y)
 w0 = 20e-6
 
-base_directory = r'D:\MarkSimulations\SphericalTrialLP6_2'
-output_directory = os.path.join(base_directory, f'P={1}, L={3}')
-importWave = np.load(f'{output_directory}//BinaryDataSlice{799}_p={1}_l={3}.npy')
+base_directory = r'/Users/Mark/Documents/Test'
+
 
 overlap_values = np.zeros((10, 10))
-
+output_directory = os.path.join(base_directory, f'P={5}, L={5}')
+importWave = np.load(f'{output_directory}//BinaryDataSlice{600}_p={5}_l={5}.npy')
 for p in range (10):
     for l in range (10):
 
@@ -34,7 +34,7 @@ for p in range (10):
         overlap = np.trapz(np.conj(normalized_refWave)*normalized_importWave, dx=x[1] - x[0], axis=0)
         overlap = np.trapz(overlap)
 
-        overlap_values[p][l] = overlap
+        overlap_values[p][l] = np.abs(overlap)
         print("p = ",p,"l= ",l)
         print (overlap_values[p][l])
 

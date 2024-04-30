@@ -12,13 +12,14 @@ def propogateScatterMask(wave, computationStep, res2, s , λ, scattermask):
         # Multiply wave and distance arrays
         # wave = np.multiply(wave, np.exp(1j * N))
 
-        # Add random scatterer
-        transformed_scattermask = np.where(scattermask == 0, 1, 0.95)
-        product = np.multiply(wave, transformed_scattermask)
+        #Apply phase mask
+
+
+        modified_wave = np.multiply(wave, np.exp(1j * scattermask))
 
         
         # Take Fourier transform
-        fft_result = np.fft.fft2(product)
+        fft_result = np.fft.fft2(modified_wave)
 
         # Perform inverse Fourier transform
         ifft_result = np.fft.ifft2(fft_result * distance)

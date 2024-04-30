@@ -4,7 +4,6 @@ def func(index: int):
     print(index)
 
 if __name__ == '__main__':
-    manager = multiprocessing.Manager()
     processes = []
 
     for i in range(0, 6):

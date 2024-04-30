@@ -12,9 +12,10 @@ from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib.widgets import Slider
 import os
-import multiprocessing
+from tqdm import tqdm
 
 
+base_directory = r'/Volumes/DeBroglie/MarkSimulations/DataForSVD3'
 # Parameters
 # Laguerre-Gaussian parameters
 
@@ -30,126 +31,132 @@ min_radius = 3
 max_radius = 3
 voxel_resolution = waveRes/500
 bloodVol, bloodSlices = bloodVolumeCreator.generate_spheres(grid_size, num_spheres, min_radius, max_radius, voxel_resolution)
-
-for p in range(3):
-    for l in range(3):
-        w0 = 20e-6  # Waist parameter
-
-        # Tip Tilt parameters
-
-        phaseshifttip_init = 0
-        phaseshifttilt_init = 0
-
-        #------------------------------------------------------------
-
-        # Distance parameters for computation 
-
-        s = 0.1 # Aperature size
-        λ = 600e-9 # Wavelength of light
-
-        #------------------------------------------------------------
-
-        # Defining distance steps with or without scattering 
-
-        computeStep = 1 # How far does the wave propogate at each computation step
-        finalDistance = 800 # How far does the wave propogate in total
-        # Creating plot arrays 
-
-        intensity_data = []
-        phase_data = []
-
-
-        #------------------------------------------------------------
-
-
-        # Create the initial wavefront 
-
-        oldwave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, p, l, w0)
-        tiptilt = tilt_func.tilttip(waveRes, phaseshifttip_init, phaseshifttilt_init)
-
-        oldwave = computeWave.makeWave(oldwave, tiptilt)
-        oldwave = np.fft.ifft2(oldwave * distanceTerm.disStep(0, waveRes, s, λ))
-        plt.imshow(np.abs(oldwave) ** 2, cmap='inferno')
-        plt.imshow(np.angle(oldwave), cmap='inferno')
-
-        #------------------------------------------------------------
-
-        base_directory = r'/Users/Mark/Documents/Test'
-
-
-        output_directory = os.path.join(base_directory, f'P={p}, L={l}')
-
-        #------------------------------------------------------------
-
-        # Propogate the wavefront
-
-        for i in range(0, finalDistance, computeStep):
-            if i < grid_size:
-                wave = propogator.propogateScatterMask(oldwave, computeStep*1e-6, waveRes, s, λ, bloodSlices[i])
-               # intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
-                #phase_data.append(np.angle(wave))
-                oldwave = wave
-            else:
-                wave = propogator.propogate(oldwave, computeStep*1e-1, waveRes, s, λ)
-                #intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
-                #phase_data.append(np.angle(wave))
-                oldwave = wave  
-            if not os.path.exists(output_directory):
-                os.makedirs(output_directory)
-            np.save(os.path.join(output_directory, f'BinaryDataSlice{i}_p={p}_l={l}.npy'), wave)      
-            print(i)
-
-        #------------------------------------------------------------
-
-        # Show the plots
-        '''
-        fig, axs = plt.subplots(1, 2, figsize=(15, 5))  # Create two subplots
-
-        slice_start = 0
-        slice_end = finalDistance - 1
-        slice_index = slice_start
-
-        def update(frame):
-            global slice_index
-            axs[0].clear()
-            axs[1].clear()
-
-            axs[0].imshow(intensity_data[slice_index], cmap='inferno')
-            axs[0].set_title(f'Intensity Slice at X = {slice_index}')
-
-            axs[1].imshow(phase_data[slice_index], cmap='inferno')  # Assuming 'viridis' colormap for phase
-            axs[1].set_title(f'Phase Slice at X = {slice_index}')
-
-            slice_index = (slice_index + 1) % (slice_end + 1)
-
-        ani = FuncAnimation(fig, update, interval=300)  # Interval in milliseconds
-        plt.show()'''
+if not os.path.exists(base_directory):
+            os.makedirs(base_directory)
+np.save(os.path.join(base_directory, f'bloodslices1.npy'), bloodSlices)
 
 
 
-        def save_frames(output_directory):
-            os.makedirs(output_directory, exist_ok=True)  # Create directory if it doesn't exist
 
-            for i, intensity_frame in enumerate(intensity_data):
-                plt.imshow(intensity_frame, cmap='inferno')
-                plt.title(f'Intensity Slice at Z = {i}')
-                plt.savefig(os.path.join(output_directory, f'intensity_frame_{i}.png'))
-                plt.close()
+for l in tqdm (range (26), desc="Loading…", ascii=False, ncols=75):
+    w0 = 20e-6  # Waist parameter
 
-            for i, phase_frame in enumerate(phase_data):
-                plt.imshow(phase_frame, cmap='inferno')
-                plt.title(f'Phase Slice at Z = {i}')
-                plt.savefig(os.path.join(output_directory, f'phase_frame_{i}.png'))
-                plt.close()
+    # Tip Tilt parameters
 
-        
+    phaseshifttip_init = 0
+    phaseshifttilt_init = 0
 
-        # Create the output directory if it doesn't exist
+    #------------------------------------------------------------
+
+    # Distance parameters for computation 
+
+    s = 0.1 # Aperature size
+    λ = 600e-9 # Wavelength of light
+
+    #------------------------------------------------------------
+
+    # Defining distance steps with or without scattering 
+
+    computeStep = 1 # How far does the wave propogate at each computation step
+    finalDistance = 800 # How far does the wave propogate in total
+    # Creating plot arrays 
+
+    intensity_data = []
+    phase_data = []
+
+
+    #------------------------------------------------------------
+
+
+    # Create the initial wavefront 
+
+    oldwave = generateLaguerre2DnoZ.laguerre_gaussian(X, Y, 0, l, w0)
+    tiptilt = tilt_func.tilttip(waveRes, phaseshifttip_init, phaseshifttilt_init)
+
+    oldwave = computeWave.makeWave(oldwave, tiptilt)
+    oldwave = np.fft.ifft2(oldwave * distanceTerm.disStep(0, waveRes, s, λ))
+
+    overlap_importWave = np.trapz(np.conj(oldwave)*oldwave, dx=x[1] - x[0], axis=0)
+    overlapy_importWave = np.trapz(overlap_importWave)
+    oldwave = oldwave / np.sqrt(overlapy_importWave)
+
+    #------------------------------------------------------------
+
+    
+
+
+    output_directory = os.path.join(base_directory, f'L={l}')
+
+    #------------------------------------------------------------
+
+    # Propogate the wavefront
+
+    for i in range(0, finalDistance, computeStep):
+        if i < grid_size:
+            wave = propogator.propogateScatterMask(oldwave, computeStep*1e-6, waveRes, s, λ, bloodSlices[i])
+            # intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+            #phase_data.append(np.angle(wave))
+            oldwave = wave
+        else:
+            wave = propogator.propogate(oldwave, computeStep*1e-1, waveRes, s, λ)
+            #intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+            #phase_data.append(np.angle(wave))
+            oldwave = wave  
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
+        np.save(os.path.join(output_directory, f'BinaryDataSlice{i}_l={l}.npy'), wave)      
 
-        # Uncomment the line below to save frames
-        #save_frames(output_directory)
+    #------------------------------------------------------------
+
+    # Show the plots
+    '''
+    fig, axs = plt.subplots(1, 2, figsize=(15, 5))  # Create two subplots
+
+    slice_start = 0
+    slice_end = finalDistance - 1
+    slice_index = slice_start
+
+    def update(frame):
+        global slice_index
+        axs[0].clear()
+        axs[1].clear()
+
+        axs[0].imshow(intensity_data[slice_index], cmap='inferno')
+        axs[0].set_title(f'Intensity Slice at X = {slice_index}')
+
+        axs[1].imshow(phase_data[slice_index], cmap='inferno')  # Assuming 'viridis' colormap for phase
+        axs[1].set_title(f'Phase Slice at X = {slice_index}')
+
+        slice_index = (slice_index + 1) % (slice_end + 1)
+
+    ani = FuncAnimation(fig, update, interval=300)  # Interval in milliseconds
+    plt.show()'''
+
+
+
+    def save_frames(output_directory):
+        os.makedirs(output_directory, exist_ok=True)  # Create directory if it doesn't exist
+
+        for i, intensity_frame in enumerate(intensity_data):
+            plt.imshow(intensity_frame, cmap='inferno')
+            plt.title(f'Intensity Slice at Z = {i}')
+            plt.savefig(os.path.join(output_directory, f'intensity_frame_{i}.png'))
+            plt.close()
+
+        for i, phase_frame in enumerate(phase_data):
+            plt.imshow(phase_frame, cmap='inferno')
+            plt.title(f'Phase Slice at Z = {i}')
+            plt.savefig(os.path.join(output_directory, f'phase_frame_{i}.png'))
+            plt.close()
+
+    
+
+    # Create the output directory if it doesn't exist
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    # Uncomment the line below to save frames
+    #save_frames(output_directory)
 
 
 

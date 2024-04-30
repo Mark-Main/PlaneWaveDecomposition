@@ -2,16 +2,18 @@ import numpy as np
 import os
 import generateLaguerre2DnoZ
 import matplotlib.pyplot as plt
+import propogator
+from tqdm import tqdm
 
 waveRes = 500
-x = np.linspace(-100e-6, 100e-6, waveRes)
-y = np.linspace(-100e-6, 100e-6, waveRes)
+x = np.linspace(-200e-6, 200e-6, waveRes)
+y = np.linspace(-200e-6, 200e-6, waveRes)
 X, Y = np.meshgrid(x, y)
 w0 = 20e-6
 
-lgCount = 5
+lgCount = 30
 
-base_directory = r'/Volumes/DeBroglie/MarkSimulations/DataForSVD'
+base_directory = r'/Users/Mark/Desktop/NewSimData/PhasemaskTest2'
 
 
 # Generate reference LG modes
@@ -33,7 +35,7 @@ for inputL in range (lgCount):
 
         refWave = refLGstorage[inputL]
         output_directory = os.path.join(base_directory, f'L={outputL}')
-        importWave = np.load(f'{output_directory}//BinaryDataSlice{799}_l={outputL}.npy')
+        importWave = np.load(f'{output_directory}//BinaryDataSlice_l={outputL}.npy')
 
         overlap_importWave = np.trapz(np.conj(importWave)*importWave, dx=x[1] - x[0], axis=0)
         overlapy_importWave = np.trapz(overlap_importWave)
@@ -72,7 +74,47 @@ def multiply_lg_waves_by_svd(lg_waves, svd):
 
 svd_mode = multiply_lg_waves_by_svd(refLGstorage,VT)
 svd_mode_intensity = np.abs(svd_mode)
-
-plt.imshow(svd_mode_intensity, cmap='inferno')
-plt.colorbar()
+plt.imshow(svd_mode_intensity)
 plt.show()
+
+
+
+#-------------------------
+bloodSlices = np.load(f'{base_directory}//bloodSlices.npy')
+
+grid_size,finalDistance, computeStep,s,λ = waveRes, 11,1,0.1,850e-9
+oldwave = svd_mode
+
+overlap_importWave = np.trapz(np.conj(oldwave)*oldwave, dx=x[1] - x[0], axis=0)
+overlapy_importWave = np.trapz(overlap_importWave)
+oldwave = oldwave / np.sqrt(overlapy_importWave)
+
+for i in tqdm (range (0, finalDistance, computeStep), desc="Loading…", ascii=False, ncols=75):
+    if i <= grid_size:
+        wave = propogator.propogateScatterMask(oldwave, computeStep*1e-6, waveRes, s, λ, bloodSlices[i])
+        # intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+        #phase_data.append(np.angle(wave))
+        oldwave = wave
+    else:
+        wave = propogator.propogate(oldwave, computeStep*1e-2, waveRes, s, λ)
+        #intensity_data.append(np.abs(wave) ** 2 / np.max(np.abs(wave) ** 2))
+        #phase_data.append(np.angle(wave))
+        oldwave = wave
+
+
+
+print("SVD sum ",np.sum(np.abs(oldwave) ** 2) )
+for mode in range(30):
+    output_directory = os.path.join(base_directory, f'L={mode}')
+    input = np.load(f'{output_directory}//BinaryDataSlice_l={mode}.npy')
+    print("LG sum ",mode, np.sum(np.abs(input) ** 2))
+
+plt.imshow(np.abs(svd_mode)**2)
+plt.show()
+plt.imshow(np.abs(oldwave)**2)
+plt.show()
+
+
+
+
+
